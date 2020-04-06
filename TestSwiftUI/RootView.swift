@@ -8,38 +8,74 @@
 
 import SwiftUI
 
-struct Food: Identifiable {
-    let id = UUID()
-    let name: String
-}
-
-final class FoodListViewModel: ObservableObject {
-    @Published private(set) var foods = [
-        Food(name: "Milk"),
-        Food(name: "Cheese"),
-        Food(name: "Apple"),
-        Food(name: "Srawberry"),
-    ]
-}
-
 struct RootView: View {
-    @ObservedObject var viewModel = FoodListViewModel()
-  
+    
+    @EnvironmentObject var foodListViewModel: FoodListViewModel
+    
+    @State private var selection = 0
     var body: some View {
-        List {
-            ForEach(viewModel.foods) { food in
-                Text(food.name)
-                
+        TabView(selection: $selection){
+            FoodListView()
+                .tag(0)
+                .tabItem{
+                    VStack{
+                        Text("Foods")
+                        Image(systemName: "flame.fill")
+                    }
+            }
+            AboutView()
+                .tag(1)
+                .tabItem{
+                    VStack {
+                        Text("About")
+                        Image(systemName: "hare")
+                    }
             }
         }
     }
 }
-
-
-struct ContentView_Previews: PreviewProvider {
+struct RootView_Previews: PreviewProvider {
+    
     static var previews: some View {
         RootView()
     }
 }
 
+// MARK - Views
 
+struct AboutView: View {
+    
+    @State var aboutShowed: Bool = false
+    
+    var body: some View {
+        VStack {
+            Text("About App")
+                .simultaneousGesture(TapGesture().onEnded {
+                    self.aboutShowed.toggle()
+                })
+        }
+        .sheet(isPresented: $aboutShowed, onDismiss: { print("Modal Closed") }) {
+            AboutViewModal()
+        }
+    }
+}
+
+struct AboutViewModal: View {
+    
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    
+    var body: some View {
+        VStack {
+            Button(action: {self.presentationMode.wrappedValue.dismiss() }) {
+                Text("Close")
+            }
+            Spacer()
+            ActivityIndicatorView()
+            Image(systemName: "hare.fill")
+                .foregroundColor(.red)
+                .font(.largeTitle)
+            Spacer()
+            Spacer()
+        }
+    }
+}
